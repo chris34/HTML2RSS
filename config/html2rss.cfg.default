@@ -1,0 +1,53 @@
+;; This file is intended to be a template for your own configuration.
+;; Just copy this one to a file called "html2rss.cfg" and edit that one!
+;; However, if no custom configfile exists, the default will be used
+;; as fallback.
+
+[GENERAL]
+;; general options that apply to every site or adapt the feed-output.
+;; if you like the default ones, you don’t have to define them a second
+;; time.
+
+feed-location=./feeds
+;; path to the generated feed
+;; default: a subdirectory "feeds" placed next to "Main.py"
+
+feed-mode=one-feed-for-all
+;; defines the creation-modi of the program, possible options are:
+;; * one-feed-for-all (default)
+;;   will create only one feedfile which includes all information of
+;;   all sites you want to follow.
+;; * one-feed-per-parser
+;;   will create a feed per parser or service. Thus, f.e. separate feeds 
+;;   are created for soundcloud and twitter.
+;; * one-feed-per-url
+;;   will create a feed per URL which you want to follow. Thus, if you 
+;;   f.e. follow ten artists that have a own web page each, you will get
+;;   ten feeds. 
+
+feed-title=own generated rss-feed
+;; This title is only used for describing the feed. Choose one that you
+;; like.
+
+feed-description=Feed contains information from self-parsed pages which don’t have an own RSS-feed.
+;; The description is a whole sentence compared to the title. It is only
+;; used for describing the feed, too. Choose one that you like.
+
+feed-url=http://example.org
+;; Domainname where the generated feed will be accessible.
+
+;; Template of an configuration section
+;[CustomName]
+;; Define your individual section name for the following page.
+;; Later, it will be used for your feed-file, if you choosed the "one-
+;; feed-per-url"-mode.
+
+;parser=
+;; Defines the parser used to collect information.
+;; At the moment only two are available:
+;; 1. soundcloud
+;; 2. twitter
+
+;source-url=
+;; URL to the page that will de downloaded, parsed and you will see 
+;; in the feed finally.
