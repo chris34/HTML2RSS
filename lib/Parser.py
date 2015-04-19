@@ -4,8 +4,9 @@
 from copy import deepcopy
 from datetime import datetime
 import locale
-from os import path
 import urllib2
+from urlparse import urljoin
+from os import path
 
 from HTMLParser import HTMLParser
 
@@ -23,18 +24,24 @@ class GenericParser(HTMLParser):
         self._list_url_info = []
         
         self._act_info = deepcopy(self.__template_item_info)
-        
-        self._attrs_dict = {}
     
     def __str__(self):
         return unicode(self).encode('utf-8')
     
-    def _convert_attrs_list_to_dict(self, attrs_list):
+    def _attrs_to_dict(self, attrs_list):
+        """Converts HTMLParser's attrs list to an dict. Thus, a check, 
+        if a attribute exists, is simplified via has_key"""
+        attrs_dict = {}
+        
         for key, value in attrs_list:
-            self._attrs_dict[key] = value
+            attrs_dict[key] = value
+            
+        return attrs_dict
     
     def _download_page(self):
-        response = urllib2.urlopen(self._url).read()
+        request = urllib2.Request(self._url,
+                                  headers={'User-Agent': 'Mozilla/5.0'})
+        response = urllib2.urlopen(request).read()
         return unicode(response, "utf-8")
         
     def _parse_URLs(self):
@@ -46,6 +53,9 @@ class GenericParser(HTMLParser):
     def _next_url_info(self):
         self._list_url_info.append(deepcopy(self._act_info))
         self._act_info = deepcopy(self.__template_item_info)
+    
+    def rm_whitespace(self, string_whitespace):
+        return " ".join(string_whitespace.split())
         
     def getData(self):
         return self._list_url_info
@@ -64,76 +74,68 @@ class SoundcloudParser(GenericParser):
     def __init__(self, url):
         GenericParser.__init__(self, url)
         
-        self.track_beginning_found = False
-        self._found_title = False
+        self._found_track = False
         
-        self._found_h3_tag = False
+        self._collect_pubdate = False
+        self._pubdate_string = u""
+        
+        self._collect_title = False
+        self._title_string = u""
         
         self._parse_URLs()
     
     def __unicode__(self):
         return u"Soundcloud"
     
-    def _download_page(self):
-        response = urllib2.urlopen(path.join(self._url, "tracks")).read()
-        return unicode(response, "utf-8")
+    def _next_url_info(self):
+        GenericParser._next_url_info(self)
+        
+        self._pubdate_string = u""
+        self._title_string = u""
     
     def handle_starttag(self, tag, attrs):
-        self._convert_attrs_list_to_dict(attrs)
+        attrs = self._attrs_to_dict(attrs)
         
-        if tag == "h3":
-            self._found_h3_tag = True
+        if tag == "article" and attrs.has_key("class")\
+           and attrs["class"] == "audible":
+            self._found_track = True
         
-        # extract link and description in meta-tags
-        # see next comment to see what happens, if they dont exist
-        if tag == "meta" and self._attrs_dict.has_key("itemprop"):
-            if self._attrs_dict["itemprop"] == "url":
-                self._act_info["link"] = self._attrs_dict["content"]
-                
-            if self._attrs_dict["itemprop"] == "description":
-                self._act_info["description"] = self._attrs_dict["content"]
-        
-        # search for beginning of title
-        #
-        # additional Fallback for link. if no meta-tags exist
-        # (description cant be parsed otherwise than by meta-tags
-        #  → wont exist if no meta tags are found)
-        if (tag == "a" and self._attrs_dict.has_key("href")
-            and self._found_h3_tag):
-            self._found_title = True
+        if self._found_track:
+            if tag == "a" and attrs.has_key("itemprop") and\
+               attrs["itemprop"] == "url":
+                    self._act_info["link"] = urljoin(self._url, attrs["href"])
+                    self._collect_title = True
             
-            #if self._act_info["link"] == None:
-            self._act_info["link"] = "https://soundcloud.com" +\
-                                         self._attrs_dict["href"] 
-        
-        # search pubDate
-        if (tag == "abbr" and self._attrs_dict.has_key("class") and
-            self._attrs_dict.has_key("title")):
-            if self._attrs_dict["class"] == "pretty-date":
-                locale.setlocale(locale.LC_TIME, "C")
-                # datetime.strptime doesnt support %z in python 2.x
-                # see http://bugs.python.org/issue6641
-                pubDate = datetime.strptime(self._attrs_dict["title"][:-6],
-                            "%B, %d %Y %H:%M:%S")#.replace(tzinfo=None)
-                self._act_info["pubDate"] = pubDate
-        
-        if (self._act_info["title"] != "" and
-                self._act_info["link"] != None and
-                self._act_info["pubDate"] != None):
-            self._next_url_info()
+            if tag == "time" and attrs.has_key("pubdate"):
+                self._collect_pubdate = True
         
     def handle_data(self, data):
-        if self._found_title:
-            self._act_info["title"] += data
+        if self._collect_pubdate:
+            self._pubdate_string += data
+            
+        if self._collect_title:
+            self._title_string += data
         
     def handle_endtag(self, tag):
-        if tag == "a" and self._found_title:
-            self._found_title = False
+        if tag == "article" and self._found_track:
+            self._found_track = False
+            self._next_url_info()
+        
+        if tag == "a" and self._collect_title:
+            self._act_info["title"] = self.rm_whitespace(self._title_string)
+            self._collect_title = False
+        
+        if tag == "time" and self._collect_pubdate:
+            self._collect_pubdate = False
             
-        if tag == "h3" and self._found_h3_tag:
-            self._found_h3_tag = False
-    
-    
+            locale.setlocale(locale.LC_TIME, "C")
+            # datetime.strptime doesnt support %z in python 2.x
+            # see http://bugs.python.org/issue6641
+            # → trace +0000
+            self._act_info["pubDate"] = datetime.strptime(self._pubdate_string[:-6],
+                                                   "%Y/%m/%d  %H:%M:%S")
+
+
 class TwitterParser(GenericParser):
     def __init__(self, url):
         GenericParser.__init__(self, url)
@@ -143,40 +145,40 @@ class TwitterParser(GenericParser):
         self.__found_twitter_username = False
         self.__twitter_username = u""
         
+        self.__html_encoding = u""
+        
         self._parse_URLs()
     
     def __unicode__(self):
         return u"Twitter"
     
     def handle_starttag(self, tag, attrs):
-        self._convert_attrs_list_to_dict(attrs)
+        attrs = self._attrs_to_dict(attrs)
+        
+        # get encoding of HTML-document
+        if tag == "meta" and attrs.has_key("charset"):
+            self.__html_encoding = attrs["charset"]
         
         # search username
-        if tag == "a" and self._attrs_dict.has_key("class"):
-            if "ProfileHeaderCard-nameLink" in self._attrs_dict["class"]:
+        if tag == "a" and attrs.has_key("class"):
+            if "ProfileHeaderCard-nameLink" in attrs["class"]:
                 self.__found_twitter_username = True
         
         # search link and pubDate
-        if (tag == "a" and self._attrs_dict.has_key("title") and
-             self._attrs_dict.has_key("href") and
-             self._attrs_dict.has_key("class")):
-            if "ProfileTweet-timestamp" in self._attrs_dict["class"]:
-                self._act_info["link"] = "https://twitter.com" +\
-                                         self._attrs_dict["href"]
+        if (tag == "a" and attrs.has_key("title") and
+             attrs.has_key("href") and attrs.has_key("class")):
+            if "ProfileTweet-timestamp" in attrs["class"]:
+                self._act_info["link"] = "https://twitter.com" + attrs["href"]
                 
                 # locale needed for correct date parsing (→ month name)
                 locale.setlocale(locale.LC_TIME, "")
+                date_string = attrs["title"].encode(self.__html_encoding)
                 try:
-                    self._act_info["pubDate"] = datetime.strptime(
-                                            self._attrs_dict["title"],
+                    self._act_info["pubDate"] = datetime.strptime(date_string,
                                             "%H:%M - %d. %b. %Y")
                 except ValueError:
-                    try:
-                        self._act_info["pubDate"] = datetime.strptime(
-                                            self._attrs_dict["title"],
+                    self._act_info["pubDate"] = datetime.strptime(date_string,
                                             "%H:%M - %d. %B %Y")
-                    except ValueError:
-                        raise
                 
                 # create title after required data (username and pubDate)
                 # are collected
@@ -185,8 +187,8 @@ class TwitterParser(GenericParser):
                                 self._act_info["pubDate"].isoformat(" ")
         
         # search beginning of description
-        if tag == "p" and self._attrs_dict.has_key("class"):
-            if "ProfileTweet-text" in self._attrs_dict["class"]:
+        if tag == "p" and attrs.has_key("class"):
+            if "ProfileTweet-text" in attrs["class"]:
                 self.__found_description = True
         
     def handle_data(self, data):
@@ -204,20 +206,49 @@ class TwitterParser(GenericParser):
             self.__found_description = False
             self.description_finished = True
             self._next_url_info()
-    
-    
+
+
 if __name__ == "__main__":
     soundcloud = SoundcloudParser(u"https://soundcloud.com/calvinharris")
     soundcloud_test = soundcloud.getData()
     print soundcloud_test
     
-    twitter_test = TwitterParser(u"https://twitter.com/ubernauten").getData()
+    '''
+    print "######################################"
+    s = SoundcloudParser("")
+    s.feed("""
+    <article class="audible" itemprop="track" itemscope itemtype="http://schema.org/MusicRecording">
+        <h1 itemprop="name">
+            <a itemprop="url" href="/calvinharris/calvin-harris-blame-feat-john-newman-acapella">Calvin Harris - Blame feat John Newman Acapella</a>
+        </h1>
+        by <a href="/calvinharris">Calvinharris</a>
+        published on <time pubdate>2015/03/17 02:27:34 +0000</time>
+        <meta itemprop="duration" content="PT00H02M50S" />
+    </article>
+    """)
+    print s.getData()
+
+    print "######################################"
+    s2 = SoundcloudParser("")
+    s2.feed("""
+    <article class="audible" itemprop="track" itemscope itemtype="http://schema.org/MusicRecording">
+        <h1 itemprop="name">
+            <a itemprop="url" href="/calvinharris/calvin-harris-blame-feat-john-newman-acapella">Calvin Harris - Blame feat John Newman Acapella</a>
+        </h1>
+        
+        published on <time pubdate>2015/03/17 02:27:34 +0000</time>
+        <meta itemprop="duration" content="PT00H02M50S" />
+    </article>
+    """)
+    print s2.getData()
+    '''
+    twitter_test = TwitterParser(u"https://twitter.com/jabber_at").getData() #https://twitter.com/ubernauten
     
-    #for t in soundcloud_test, twitter_test:
-    #    print "###########################################################"
-    #    for i in t:
-    #        print i["title"]
-    #        print i["link"]
-    #        print i["pubDate"]
-    #        print i["description"]
-    #        print "--------------------------------------------------------"
+    for t in soundcloud_test, twitter_test:
+        print "###########################################################"
+        for i in t:
+            print i["title"]
+            print i["link"]
+            print i["pubDate"]
+            print i["description"]
+            print "--------------------------------------------------------"
