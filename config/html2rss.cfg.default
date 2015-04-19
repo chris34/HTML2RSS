@@ -18,12 +18,12 @@ feed-mode=one-feed-for-all
 ;;   will create only one feedfile which includes all information of
 ;;   all sites you want to follow.
 ;; * one-feed-per-parser
-;;   will create a feed per parser or service. Thus, f.e. separate feeds 
+;;   will create a feed per parser or service. Thus, f.e. separate feeds
 ;;   are created for soundcloud and twitter.
 ;; * one-feed-per-url
-;;   will create a feed per URL which you want to follow. Thus, if you 
+;;   will create a feed per URL which you want to follow. Thus, if you
 ;;   f.e. follow ten artists that have a own web page each, you will get
-;;   ten feeds. 
+;;   ten feeds.
 
 feed-title=own generated rss-feed
 ;; This title is only used for describing the feed. Choose one that you
@@ -49,5 +49,5 @@ feed-url=http://example.org
 ;; 2. twitter
 
 ;source-url=
-;; URL to the page that will de downloaded, parsed and you will see 
+;; URL to the page that will de downloaded, parsed and you will see
 ;; in the feed finally.

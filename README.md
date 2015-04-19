@@ -16,7 +16,7 @@ To run the program once, you can simply run
 
     python Main.py
 
-in a terminal. 
+in a terminal.
 
 For periodically usage – imho the main task – you can run it with the help of cron, runwhen or equivalent software. See their documentation on how to use it, please. ;)
 
