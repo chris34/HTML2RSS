@@ -11,6 +11,7 @@ from os import path
 from HTMLParser import HTMLParser
 
 class GenericParser(HTMLParser):
+    '''Basic tools to collect information from a single webpage (→ self._url)'''
     def __init__(self, url):
         HTMLParser.__init__(self)
         self._url = url
@@ -30,7 +31,7 @@ class GenericParser(HTMLParser):
 
     def _attrs_to_dict(self, attrs_list):
         """Converts HTMLParser's attrs list to an dict. Thus, a check,
-        if a attribute exists, is simplified via has_key"""
+        whether a attribute exists, is simplified via has_key()"""
         attrs_dict = {}
 
         for key, value in attrs_list:
@@ -39,8 +40,7 @@ class GenericParser(HTMLParser):
         return attrs_dict
 
     def _download_page(self):
-        request = urllib2.Request(self._url,
-                                  headers={'User-Agent': 'Mozilla/5.0'})
+        request = urllib2.Request(self._url, headers={'User-Agent': 'Mozilla/5.0'})
         response = urllib2.urlopen(request).read()
         return unicode(response, "utf-8")
 
@@ -70,6 +70,33 @@ class GenericParser(HTMLParser):
         pass
 
 
+class SoundcloudDescriptionParser(GenericParser):
+    def __init__(self, url):
+        GenericParser.__init__(self, url)
+
+        self._inside_article = False
+        self._description_text = u""
+
+        self._parse_URLs()
+
+    def getData(self):
+        return self._description_text
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "article":
+            self._inside_article = True
+            return
+
+        if tag == "meta" and self._inside_article:
+            attrs = self._attrs_to_dict(attrs)
+            if attrs.has_key("itemprop") and attrs["itemprop"] == "description" and attrs.has_key("content"):
+                self._description_text = attrs["content"]
+
+    def handle_endtag(self, tag):
+        if tag == "article" and self._inside_article:
+            self._inside_article = False
+
+
 class SoundcloudParser(GenericParser):
     def __init__(self, url):
         GenericParser.__init__(self, url)
@@ -83,6 +110,10 @@ class SoundcloudParser(GenericParser):
         self._title_string = u""
 
         self._parse_URLs()
+
+        for elem in self._list_url_info:
+            parser = SoundcloudDescriptionParser(elem["link"])
+            elem["description"] = parser.getData()
 
     def __unicode__(self):
         return u"Soundcloud"
