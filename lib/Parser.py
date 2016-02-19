@@ -237,9 +237,10 @@ class TwitterParser(GenericParser):
 
 
 if __name__ == "__main__":
-    soundcloud = SoundcloudParser(u"https://soundcloud.com/calvinharris")
+    print "Small manual test"
+
+    soundcloud = SoundcloudParser(u"https://soundcloud.com/soundcloud")
     soundcloud_test = soundcloud.getData()
-    print soundcloud_test
 
     '''
     print "######################################"
@@ -270,7 +271,8 @@ if __name__ == "__main__":
     """)
     print s2.getData()
     '''
-    twitter_test = TwitterParser(u"https://twitter.com/jabber_at").getData() #https://twitter.com/ubernauten
+    twitter = TwitterParser(u"https://twitter.com/twitter")
+    twitter_test = twitter.getData()
 
     for t in soundcloud_test, twitter_test:
         print "###########################################################"
