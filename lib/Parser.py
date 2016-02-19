@@ -167,18 +167,15 @@ class TwitterParser(GenericParser):
         # search link and pubDate
         if (tag == "a" and attrs.has_key("title") and
              attrs.has_key("href") and attrs.has_key("class")):
-            if "ProfileTweet-timestamp" in attrs["class"]:
+            if "tweet-timestamp" in attrs["class"]:
                 self._act_info["link"] = "https://twitter.com" + attrs["href"]
 
-                # locale needed for correct date parsing (→ month name)
-                locale.setlocale(locale.LC_TIME, "")
+                locale.setlocale(locale.LC_TIME, "C")
                 date_string = attrs["title"].encode(self.__html_encoding)
-                try:
-                    self._act_info["pubDate"] = datetime.strptime(date_string,
-                                            "%H:%M - %d. %b. %Y")
-                except ValueError:
-                    self._act_info["pubDate"] = datetime.strptime(date_string,
-                                            "%H:%M - %d. %B %Y")
+
+                # example format: '2:07 PM - 3 Oct 2014'
+                self._act_info["pubDate"] = datetime.strptime(date_string,
+                                            "%I:%M %p - %d %b %Y")
 
                 # create title after required data (username and pubDate)
                 # are collected
@@ -188,7 +185,7 @@ class TwitterParser(GenericParser):
 
         # search beginning of description
         if tag == "p" and attrs.has_key("class"):
-            if "ProfileTweet-text" in attrs["class"]:
+            if "tweet-text" in attrs["class"]:
                 self.__found_description = True
 
     def handle_data(self, data):
