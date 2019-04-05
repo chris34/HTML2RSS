@@ -1,24 +1,20 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-
-from codecs import open
-import ConfigParser
+import configparser
 from os import path
 from sys import argv
 
 from lib.Parser2Feed import OneRSSFile, RSSFilePerParser, RSSFilePerURL
 
-class Main(object):
+class Main:
     def __init__(self):
-        self.__config = ConfigParser.SafeConfigParser()
+        self.__config = configparser.ConfigParser()
 
         working_path = path.dirname(argv[0])
         default_config = path.join(working_path,
                                    "config/html2rss.cfg.default")
-
-        self.__config.readfp(open(default_config, "r", encoding="utf8"))
-        self.__config.read(path.join(working_path,"config/html2rss.cfg"))
+        user_config = path.join(working_path, "config/html2rss.cfg")
+        self.__config.read((default_config, user_config))
         self.__config_dict = self.__convert_config_to_dict()
 
         self.__choose_handler()
@@ -62,9 +58,9 @@ class NoModeError(Exception):
 
 
 def to_unicode_or_burst(obj, encoding="utf-8"):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding)
+    if isinstance(obj, str):
+        if not isinstance(obj, str):
+            obj = str(obj, encoding)
     return obj
 
 

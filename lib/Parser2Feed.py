@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-from codecs import open
 from os import path, mkdir
 
-from atom_generator import AtomFeed
-from Parser import SoundcloudParser, TwitterParser
+from .atom_generator import AtomFeed
+from .Parser import SoundcloudParser, TwitterParser
 
 
-class GenericParser2FeedHandler(object):
+class GenericParser2FeedHandler:
     def __init__(self, config):
         self._config = config
 
@@ -18,7 +16,7 @@ class GenericParser2FeedHandler(object):
         self.__write_feed_2_file()
 
     def __write_feed_2_file(self):
-        for feed_path, feed_object in self._feed_dict.items():
+        for feed_path, feed_object in list(self._feed_dict.items()):
             feed_object.sort_items_after_date()
 
             # check directory
@@ -27,8 +25,8 @@ class GenericParser2FeedHandler(object):
             if not path.exists(dir_path):
                 mkdir(dir_path)
 
-            with open(feed_path, "w", "utf-8") as file:
-                file.write(feed_object.getFeed())
+            with open(feed_path, "w") as f:
+                f.write(feed_object.getFeed())
 
     def _create_feed(self):
         pass
@@ -47,9 +45,6 @@ class GenericParser2FeedHandler(object):
 
 
 class OneRSSFile(GenericParser2FeedHandler):
-    def __init__(self, *args):
-        GenericParser2FeedHandler.__init__(self, *args)
-
     def _create_feed(self):
         feed = AtomFeed(self._config["GENERAL"]["feed-title"],
                       self._config["GENERAL"]["feed-url"],
@@ -68,18 +63,15 @@ class OneRSSFile(GenericParser2FeedHandler):
 
 
 class RSSFilePerParser(GenericParser2FeedHandler):
-    def __init__(self, *args):
-        GenericParser2FeedHandler.__init__(self, *args)
-
     def _create_feed(self):
         parser_dict = {}
 
         for i in self._config:
             if i != "GENERAL":
                 parser = self._choose_parser(i)
-                parser_name = unicode(parser)
+                parser_name = str(parser)
 
-                if parser_name in parser_dict.keys():
+                if parser_name in list(parser_dict.keys()):
                     parser_dict[parser_name].append(parser)
                 else:
                     parser_dict[parser_name] = [parser]
@@ -96,14 +88,11 @@ class RSSFilePerParser(GenericParser2FeedHandler):
 
             feed_location = self._config["GENERAL"]["feed-location"]
             full_path = path.join(feed_location,
-                                           u'feed-%s.xml' %i)
+                                           'feed-%s.xml' %i)
             self._feed_dict[full_path] = feed
 
 
 class RSSFilePerURL(GenericParser2FeedHandler):
-    def __init__(self, *args):
-        GenericParser2FeedHandler.__init__(self, *args)
-
     def _create_feed(self):
         for i in self._config:
             if i != "GENERAL":
@@ -119,7 +108,7 @@ class RSSFilePerURL(GenericParser2FeedHandler):
 
                 feed_location = self._config["GENERAL"]["feed-location"]
                 full_path = path.join(feed_location,
-                                           u'feed-%s.xml' %i)
+                                           'feed-%s.xml' %i)
                 self._feed_dict[full_path] = feed
 
 

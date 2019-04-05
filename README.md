@@ -4,9 +4,9 @@ As already written in the description, this program downloads specified URLs, pa
 Thus, you do not need any account or login to be up to date what is happening on these sites. You just need a RSS-reader and an Internet-connection.
 
 # Dependencies
-The only dependency you need to run this script is Python 2.x. If you have not installed it already, you can simply do this under a Debian-like OS by running
+The only dependency you need to run this script is Python 3.x. If you have not installed it already, you can simply do this under a Debian-like OS by running
 
-    sudo apt-get install python
+    sudo apt-get install python3
 
 # Installation
 Simply download (or clone) this repository. You're done!
