@@ -40,7 +40,7 @@ class GenericParser(HTMLParser):
         return attrs_dict
 
     def _download_page(self):
-        request = urllib2.Request(self._url, headers={'User-Agent': 'Mozilla/5.0'})
+        request = urllib2.Request(self._url, headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'en'})
         response = urllib2.urlopen(request).read()
         return unicode(response, "utf-8")
 
@@ -159,8 +159,7 @@ class SoundcloudParser(GenericParser):
         if tag == "time" and self._collect_pubdate:
             self._collect_pubdate = False
 
-            locale.setlocale(locale.LC_TIME, "C")
-            # datetime.strptime doesnt support %z in python 2.x
+            # TODO: datetime.strptime doesnt support %z in python 2.x
             # see http://bugs.python.org/issue6641
             # → trace +0000
             self._act_info["pubDate"] = datetime.strptime(self._pubdate_string[:-6],
@@ -201,7 +200,6 @@ class TwitterParser(GenericParser):
             if "tweet-timestamp" in attrs["class"]:
                 self._act_info["link"] = "https://twitter.com" + attrs["href"]
 
-                locale.setlocale(locale.LC_TIME, "C")
                 date_string = attrs["title"].encode(self.__html_encoding)
 
                 # example format: '2:07 PM - 3 Oct 2014'
