@@ -224,6 +224,36 @@ class TwitterParser(GenericParser):
             self._next_url_info()
 
 
+class IdParser(GenericParser):
+    def __init__(self, url):
+        super().__init__(url)
+
+        self._id_found = False
+
+        self._tag = 'a'
+        self._id = 'link_archive'
+
+        self._parse_URLs()
+
+    def handle_starttag(self, tag, attrs):
+        if tag == self._tag:
+            attrs = self._attrs_to_dict(attrs)
+            if attrs.get('id') == self._id:
+                self._id_found = True
+
+                link = urljoin(self._url, attrs['href'])
+                self._act_info['link'] = link
+        elif tag == 'img' and self._id_found:
+            attrs = self._attrs_to_dict(attrs)
+            src = urljoin(self._url, attrs['src'])
+            self._act_info['description'] = f'<img src="{ src }" />'
+
+    def handle_endtag(self, tag):
+        if tag == self._tag and self._id_found:
+            self._id_found = False
+            self._next_url_info()
+
+
 if __name__ == "__main__":
     print("Small manual test")
 
