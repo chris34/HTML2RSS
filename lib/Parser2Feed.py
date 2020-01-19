@@ -3,7 +3,7 @@
 from os import path, mkdir
 
 from .atom_generator import AtomFeed
-from .Parser import SoundcloudParser, TwitterParser
+from .Parser import IdParser, SoundcloudParser, SzParser, TwitterParser
 
 
 class GenericParser2FeedHandler:
@@ -34,9 +34,13 @@ class GenericParser2FeedHandler:
     def _choose_parser(self, config_section):
         config_parser = self._config[config_section]["parser"]
 
-        if config_parser == "soundcloud":
+        if config_parser == "idparser":
+            return IdParser(self._config[config_section]["source-url"])
+        elif config_parser == "soundcloud":
             return SoundcloudParser(
                             self._config[config_section]["source-url"])
+        elif config_parser == "szparser":
+            return SzParser(self._config[config_section]["source-url"])
         elif config_parser == "twitter":
             return TwitterParser(
                             self._config[config_section]["source-url"])
