@@ -254,6 +254,35 @@ class IdParser(GenericParser):
             self._next_url_info()
 
 
+class SzParser(GenericParser):
+    def __init__(self, url):
+        super().__init__(url)
+
+        self.__found_entry = False
+
+        self._parse_URLs()
+
+    def __str__(self):
+        return 'SZ'
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            attrs = self._attrs_to_dict(attrs)
+            if attrs.get('class') == 'sz-teaser':
+                self.__found_entry = True
+                self._act_info['link'] = attrs['href']
+
+    def handle_data(self, data):
+        if self.__found_entry:
+            self._act_info['title'] += data
+
+    def handle_endtag(self, tag):
+        if tag == 'a' and self.__found_entry:
+            self.__found_entry = False
+            self._act_info['title'] = self.rm_whitespace(self._act_info['title'])
+            self._next_url_info()
+
+
 if __name__ == "__main__":
     print("Small manual test")
 
