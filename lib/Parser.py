@@ -235,6 +235,9 @@ class IdParser(GenericParser):
 
         self._parse_URLs()
 
+    def __str__(self):
+        return 'ID'
+
     def handle_starttag(self, tag, attrs):
         if tag == self._tag:
             attrs = self._attrs_to_dict(attrs)
