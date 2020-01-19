@@ -243,6 +243,7 @@ class IdParser(GenericParser):
 
                 link = urljoin(self._url, attrs['href'])
                 self._act_info['link'] = link
+                self._act_info['pubDate'] = datetime.now()
         elif tag == 'img' and self._id_found:
             attrs = self._attrs_to_dict(attrs)
             src = urljoin(self._url, attrs['src'])
@@ -271,6 +272,7 @@ class SzParser(GenericParser):
             if attrs.get('class') == 'sz-teaser':
                 self.__found_entry = True
                 self._act_info['link'] = attrs['href']
+                self._act_info['pubDate'] = datetime.now()
 
     def handle_data(self, data):
         if self.__found_entry:
