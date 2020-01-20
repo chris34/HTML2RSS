@@ -7,6 +7,7 @@ from operator import attrgetter
 
 ## RSS-reference → http://www.w3schools.com/rss/rss_reference.asp
 
+
 class AtomFeed:
     def __init__(self, *args):
         self.channel = AtomChannel(*args)
@@ -16,7 +17,7 @@ class AtomFeed:
         self.itemlist.append(AtomItem(*args))
 
     def sort_items_after_date(self):
-        self.itemlist.sort(key=attrgetter('pubDate'), reverse=True)
+        self.itemlist.sort(key=attrgetter("pubDate"), reverse=True)
 
     def getFeed(self):
         feed = """<?xml version="1.0" encoding="UTF-8" ?>
@@ -40,8 +41,8 @@ class AtomBaseItem:
         self.description = self.__escape_entities(description)
 
     def __escape_entities(self, text):
-        '''see http://www.w3.org/TR/REC-xml/#dt-chardata and
-        http://www.w3.org/TR/REC-xml/#dt-escape'''
+        """see http://www.w3.org/TR/REC-xml/#dt-chardata and
+        http://www.w3.org/TR/REC-xml/#dt-escape"""
         text = text.replace("&", "&#38;")
         text = text.replace("<", "&#60;")
         text = text.replace(">", "&#62;")
@@ -51,8 +52,11 @@ class AtomBaseItem:
     def getInfo(self):
         return """        <title>%s</title>
         <link>%s</link>
-        <description>%s</description>""" %(self.title, self.link,
-                                           self.description)
+        <description>%s</description>""" % (
+            self.title,
+            self.link,
+            self.description,
+        )
 
 
 class AtomChannel(AtomBaseItem):
@@ -61,32 +65,37 @@ class AtomChannel(AtomBaseItem):
         self.url = link
 
     def getInfo(self):
-        channel = AtomBaseItem.getInfo(self) +\
-                '''\n        <pubDate>%s</pubDate>\n
+        channel = (
+            AtomBaseItem.getInfo(self)
+            + """\n        <pubDate>%s</pubDate>\n
         <atom:link href="%s" rel="self" type="application/rss+xml"\
-/> \n''' % (formatdate(localtime=True), self.url)
+/> \n"""
+            % (formatdate(localtime=True), self.url)
+        )
 
         return channel
 
 
 class AtomItem(AtomBaseItem):
-    def __init__(self, title, link, description, pubDate=None,
-                    source=None):
+    def __init__(self, title, link, description, pubDate=None, source=None):
         super().__init__(title, link, description)
         self.pubDate = pubDate
         self.__source = source
 
     def __get_pub_Date(self):
         if self.pubDate:
-            return "\n        <pubDate>" +\
-                    formatdate(time.mktime(self.pubDate.timetuple()))+\
-                    "</pubDate>"
+            return (
+                "\n        <pubDate>"
+                + formatdate(time.mktime(self.pubDate.timetuple()))
+                + "</pubDate>"
+            )
         else:
             return ""
 
     def __get_source(self):
         return ""
-        pass # TODO: <source> http://validator.w3.org/feed/docs/rss2.html#ltsourcegtSubelementOfLtitemgt or http://www.w3schools.com/RSS/rss_tag_source.asp
+        pass  # TODO: <source> http://validator.w3.org/feed/docs/rss2.html#ltsourcegtSubelementOfLtitemgt or http://www.w3schools.com/RSS/rss_tag_source.asp
+
     #    if self.__source != None:
     #        return u"\n        <source>" + self.__source + "</source>"
     #    else:
@@ -96,23 +105,31 @@ class AtomItem(AtomBaseItem):
         return """
     <item>
 %s%s%s
-    </item>""" %( self.getInfo(), self.__get_pub_Date(),
-                    self.__get_source() )
+    </item>""" % (
+            self.getInfo(),
+            self.__get_pub_Date(),
+            self.__get_source(),
+        )
 
 
 if __name__ == "__main__":
-    feed = AtomFeed("Test", "http://example.org",
-                    "Just for test purposes")
+    feed = AtomFeed("Test", "http://example.org", "Just for test purposes")
 
-    for i in range(0,2):
-        title = "Testarticle %s" %i
-        feed.addItem(title, "http://example.org/article",
-                     "Article description should normally be here!")
+    for i in range(0, 2):
+        title = "Testarticle %s" % i
+        feed.addItem(
+            title,
+            "http://example.org/article",
+            "Article description should normally be here!",
+        )
 
-    for i in range(0,2):
-        title = "Testarticle with source and pubDate %s" %i
-        feed.addItem(title, "http://example.org/article",
-                     "Article description should normally be here!",
-                     datetime.now(),
-                     "http://example.org/list-articles")
+    for i in range(0, 2):
+        title = "Testarticle with source and pubDate %s" % i
+        feed.addItem(
+            title,
+            "http://example.org/article",
+            "Article description should normally be here!",
+            datetime.now(),
+            "http://example.org/list-articles",
+        )
     print(feed.getFeed())

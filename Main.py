@@ -6,13 +6,13 @@ from sys import argv
 
 from lib.Parser2Feed import OneRSSFile, RSSFilePerParser, RSSFilePerURL
 
+
 class Main:
     def __init__(self):
         self.__config = configparser.ConfigParser()
 
         working_path = path.dirname(argv[0])
-        default_config = path.join(working_path,
-                                   "config/html2rss.cfg.default")
+        default_config = path.join(working_path, "config/html2rss.cfg.default")
         user_config = path.join(working_path, "config/html2rss.cfg")
         self.__config.read((default_config, user_config))
         self.__config_dict = self.__convert_config_to_dict()
@@ -36,7 +36,7 @@ class Main:
         return config_dict
 
     def __choose_handler(self):
-        mode =  self.__config_dict["GENERAL"]["feed-mode"]
+        mode = self.__config_dict["GENERAL"]["feed-mode"]
 
         if mode == "one-feed-for-all":
             OneRSSFile(self.__config_dict)
@@ -54,7 +54,10 @@ class NoModeError(Exception):
         self.config_section = config_section
 
     def __str__(self):
-        return repr('You wanted to use a mode named "%s" in the configsection "%s". However, this mode does not exists (yet).' %(self.mode, self.config_section))
+        return repr(
+            'You wanted to use a mode named "%s" in the configsection "%s". However, this mode does not exists (yet).'
+            % (self.mode, self.config_section)
+        )
 
 
 def to_unicode_or_burst(obj, encoding="utf-8"):

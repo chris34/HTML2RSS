@@ -9,18 +9,21 @@ from os import path
 
 from html.parser import HTMLParser
 
+
 class GenericParser(HTMLParser):
-    '''Basic tools to collect information from a single webpage (→ self._url)'''
+    """Basic tools to collect information from a single webpage (→ self._url)"""
+
     def __init__(self, url):
         super().__init__()
         self._url = url
 
-        self.__template_item_info = { "title" : "",
-                                      "link" : None,
-                                      "description" : "",
-                                      "source" : self._url,
-                                      "pubDate" : None,
-                                     }
+        self.__template_item_info = {
+            "title": "",
+            "link": None,
+            "description": "",
+            "source": self._url,
+            "pubDate": None,
+        }
         self._list_url_info = []
 
         self._act_info = deepcopy(self.__template_item_info)
@@ -36,7 +39,9 @@ class GenericParser(HTMLParser):
         return attrs_dict
 
     def _download_page(self):
-        request = urllib.request.Request(self._url, headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'en'})
+        request = urllib.request.Request(
+            self._url, headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en"}
+        )
         response = urllib.request.urlopen(request).read()
         return str(response, "utf-8")
 
@@ -85,7 +90,11 @@ class SoundcloudDescriptionParser(GenericParser):
 
         if tag == "meta" and self._inside_article:
             attrs = self._attrs_to_dict(attrs)
-            if "itemprop" in attrs and attrs["itemprop"] == "description" and "content" in attrs:
+            if (
+                "itemprop" in attrs
+                and attrs["itemprop"] == "description"
+                and "content" in attrs
+            ):
                 self._description_text = attrs["content"]
 
     def handle_endtag(self, tag):
@@ -123,15 +132,13 @@ class SoundcloudParser(GenericParser):
     def handle_starttag(self, tag, attrs):
         attrs = self._attrs_to_dict(attrs)
 
-        if tag == "article" and "class" in attrs\
-           and attrs["class"] == "audible":
+        if tag == "article" and "class" in attrs and attrs["class"] == "audible":
             self._found_track = True
 
         if self._found_track:
-            if tag == "a" and "itemprop" in attrs and\
-               attrs["itemprop"] == "url":
-                    self._act_info["link"] = urljoin(self._url, attrs["href"])
-                    self._collect_title = True
+            if tag == "a" and "itemprop" in attrs and attrs["itemprop"] == "url":
+                self._act_info["link"] = urljoin(self._url, attrs["href"])
+                self._collect_title = True
 
             if tag == "time" and "pubdate" in attrs:
                 self._collect_pubdate = True
@@ -158,8 +165,9 @@ class SoundcloudParser(GenericParser):
             # TODO: datetime.strptime doesnt support %z in python 2.x
             # see http://bugs.python.org/issue6641
             # → trace +0000
-            self._act_info["pubDate"] = datetime.strptime(self._pubdate_string[:-6],
-                                                   "%Y/%m/%d  %H:%M:%S")
+            self._act_info["pubDate"] = datetime.strptime(
+                self._pubdate_string[:-6], "%Y/%m/%d  %H:%M:%S"
+            )
 
 
 class TwitterParser(GenericParser):
@@ -185,22 +193,25 @@ class TwitterParser(GenericParser):
                 self.__found_twitter_username = True
 
         # search link and pubDate
-        if (tag == "a" and "title" in attrs and
-             "href" in attrs and "class" in attrs):
+        if tag == "a" and "title" in attrs and "href" in attrs and "class" in attrs:
             if "tweet-timestamp" in attrs["class"]:
                 self._act_info["link"] = "https://twitter.com" + attrs["href"]
 
                 date_string = attrs["title"]
 
                 # example format: '2:07 PM - 3 Oct 2014'
-                self._act_info["pubDate"] = datetime.strptime(date_string,
-                                            "%I:%M %p - %d %b %Y")
+                self._act_info["pubDate"] = datetime.strptime(
+                    date_string, "%I:%M %p - %d %b %Y"
+                )
 
                 # create title after required data (username and pubDate)
                 # are collected
-                self._act_info["title"] = "[" + self.__twitter_username +\
-                                "] Tweet " +\
-                                self._act_info["pubDate"].isoformat(" ")
+                self._act_info["title"] = (
+                    "["
+                    + self.__twitter_username
+                    + "] Tweet "
+                    + self._act_info["pubDate"].isoformat(" ")
+                )
 
         # search beginning of description
         if tag == "p" and "class" in attrs:
@@ -230,27 +241,27 @@ class IdParser(GenericParser):
 
         self._id_found = False
 
-        self._tag = 'a'
-        self._id = 'link_archive'
+        self._tag = "a"
+        self._id = "link_archive"
 
         self._parse_URLs()
 
     def __str__(self):
-        return 'ID'
+        return "ID"
 
     def handle_starttag(self, tag, attrs):
         if tag == self._tag:
             attrs = self._attrs_to_dict(attrs)
-            if attrs.get('id') == self._id:
+            if attrs.get("id") == self._id:
                 self._id_found = True
 
-                link = urljoin(self._url, attrs['href'])
-                self._act_info['link'] = link
-                self._act_info['pubDate'] = datetime.now()
-        elif tag == 'img' and self._id_found:
+                link = urljoin(self._url, attrs["href"])
+                self._act_info["link"] = link
+                self._act_info["pubDate"] = datetime.now()
+        elif tag == "img" and self._id_found:
             attrs = self._attrs_to_dict(attrs)
-            src = urljoin(self._url, attrs['src'])
-            self._act_info['description'] = f'<img src="{ src }" />'
+            src = urljoin(self._url, attrs["src"])
+            self._act_info["description"] = f'<img src="{ src }" />'
 
     def handle_endtag(self, tag):
         if tag == self._tag and self._id_found:
@@ -267,24 +278,24 @@ class SzParser(GenericParser):
         self._parse_URLs()
 
     def __str__(self):
-        return 'SZ'
+        return "SZ"
 
     def handle_starttag(self, tag, attrs):
-        if tag == 'a':
+        if tag == "a":
             attrs = self._attrs_to_dict(attrs)
-            if attrs.get('class') == 'sz-teaser':
+            if attrs.get("class") == "sz-teaser":
                 self.__found_entry = True
-                self._act_info['link'] = attrs['href']
-                self._act_info['pubDate'] = datetime.now()
+                self._act_info["link"] = attrs["href"]
+                self._act_info["pubDate"] = datetime.now()
 
     def handle_data(self, data):
         if self.__found_entry:
-            self._act_info['title'] += data
+            self._act_info["title"] += data
 
     def handle_endtag(self, tag):
-        if tag == 'a' and self.__found_entry:
+        if tag == "a" and self.__found_entry:
             self.__found_entry = False
-            self._act_info['title'] = self.rm_whitespace(self._act_info['title'])
+            self._act_info["title"] = self.rm_whitespace(self._act_info["title"])
             self._next_url_info()
 
 

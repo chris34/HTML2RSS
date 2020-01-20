@@ -10,7 +10,7 @@ class GenericParser2FeedHandler:
     def __init__(self, config):
         self._config = config
 
-        self._feed_dict = {} # template: {'Filename': AtomFeed-object}
+        self._feed_dict = {}  # template: {'Filename': AtomFeed-object}
 
         self._create_feed()
         self.__write_feed_2_file()
@@ -37,33 +37,38 @@ class GenericParser2FeedHandler:
         if config_parser == "idparser":
             return IdParser(self._config[config_section]["source-url"])
         elif config_parser == "soundcloud":
-            return SoundcloudParser(
-                            self._config[config_section]["source-url"])
+            return SoundcloudParser(self._config[config_section]["source-url"])
         elif config_parser == "szparser":
             return SzParser(self._config[config_section]["source-url"])
         elif config_parser == "twitter":
-            return TwitterParser(
-                            self._config[config_section]["source-url"])
+            return TwitterParser(self._config[config_section]["source-url"])
         else:
             raise NoParserError(config_parser, config_section)
 
 
 class OneRSSFile(GenericParser2FeedHandler):
     def _create_feed(self):
-        feed = AtomFeed(self._config["GENERAL"]["feed-title"],
-                      self._config["GENERAL"]["feed-url"],
-                      self._config["GENERAL"]["feed-description"])
+        feed = AtomFeed(
+            self._config["GENERAL"]["feed-title"],
+            self._config["GENERAL"]["feed-url"],
+            self._config["GENERAL"]["feed-description"],
+        )
 
         for i in self._config:
             if i != "GENERAL":
                 parser = self._choose_parser(i)
 
                 for d in parser.getData():
-                    feed.addItem(d["title"], d["link"], d["description"],
-                                 d["pubDate"], d["source"])
+                    feed.addItem(
+                        d["title"],
+                        d["link"],
+                        d["description"],
+                        d["pubDate"],
+                        d["source"],
+                    )
 
                 feed_location = self._config["GENERAL"]["feed-location"]
-                self._feed_dict[path.join(feed_location, 'feed.xml')] = feed
+                self._feed_dict[path.join(feed_location, "feed.xml")] = feed
 
 
 class RSSFilePerParser(GenericParser2FeedHandler):
@@ -81,18 +86,24 @@ class RSSFilePerParser(GenericParser2FeedHandler):
                     parser_dict[parser_name] = [parser]
 
         for i in parser_dict:
-            feed = AtomFeed(self._config["GENERAL"]["feed-title"],
-                    self._config["GENERAL"]["feed-url"],
-                    self._config["GENERAL"]["feed-description"])
+            feed = AtomFeed(
+                self._config["GENERAL"]["feed-title"],
+                self._config["GENERAL"]["feed-url"],
+                self._config["GENERAL"]["feed-description"],
+            )
 
             for p in parser_dict[i]:
                 for d in p.getData():
-                    feed.addItem(d["title"], d["link"], d["description"],
-                                 d["pubDate"], d["source"])
+                    feed.addItem(
+                        d["title"],
+                        d["link"],
+                        d["description"],
+                        d["pubDate"],
+                        d["source"],
+                    )
 
             feed_location = self._config["GENERAL"]["feed-location"]
-            full_path = path.join(feed_location,
-                                           'feed-%s.xml' %i)
+            full_path = path.join(feed_location, "feed-%s.xml" % i)
             self._feed_dict[full_path] = feed
 
 
@@ -100,19 +111,25 @@ class RSSFilePerURL(GenericParser2FeedHandler):
     def _create_feed(self):
         for i in self._config:
             if i != "GENERAL":
-                feed = AtomFeed(self._config["GENERAL"]["feed-title"],
-                      self._config["GENERAL"]["feed-url"],
-                      self._config["GENERAL"]["feed-description"])
+                feed = AtomFeed(
+                    self._config["GENERAL"]["feed-title"],
+                    self._config["GENERAL"]["feed-url"],
+                    self._config["GENERAL"]["feed-description"],
+                )
 
                 parser = self._choose_parser(i)
 
                 for d in parser.getData():
-                    feed.addItem(d["title"], d["link"], d["description"],
-                                 d["pubDate"], d["source"])
+                    feed.addItem(
+                        d["title"],
+                        d["link"],
+                        d["description"],
+                        d["pubDate"],
+                        d["source"],
+                    )
 
                 feed_location = self._config["GENERAL"]["feed-location"]
-                full_path = path.join(feed_location,
-                                           'feed-%s.xml' %i)
+                full_path = path.join(feed_location, "feed-%s.xml" % i)
                 self._feed_dict[full_path] = feed
 
 
@@ -122,6 +139,8 @@ class NoParserError(Exception):
         self.config_section = config_section
 
     def __str__(self):
-        return repr('You wanted to use a parser named "%s" in the\
-configsection "%s". However, this parser does not exists (yet).' %(
-                                self.parsername, self.config_section))
+        return repr(
+            'You wanted to use a parser named "%s" in the\
+configsection "%s". However, this parser does not exists (yet).'
+            % (self.parsername, self.config_section)
+        )
