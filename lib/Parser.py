@@ -6,6 +6,7 @@ import locale
 import urllib.request, urllib.error, urllib.parse
 from urllib.parse import urljoin
 from os import path
+import json
 
 from html.parser import HTMLParser
 
@@ -296,6 +297,38 @@ class SzParser(GenericParser):
         if tag == "a" and self.__found_entry:
             self.__found_entry = False
             self._act_info["title"] = self.rm_whitespace(self._act_info["title"])
+            self._next_url_info()
+
+
+class FunkParser(GenericParser):
+    def __init__(self, channel_id):
+        self.channel_id = channel_id
+        url = f"https://www.funk.net/data/videos/byChannelAlias/{channel_id}?page=0&size=10"
+        super().__init__(url)
+
+        self.json_response = self._download_page()
+        self.handle_json()
+
+    def __str__(self):
+        return "Funk"
+
+    def handle_json(self):
+        python_struct = json.loads(self.json_response)
+
+        for element in python_struct["list"]:
+            self._act_info["title"] = element["title"]
+            self._act_info["description"] = element["shortDescription"]
+
+            video_alias = element["alias"]
+            link = f"https://www.funk.net/channel/{self.channel_id}/{video_alias}"
+            self._act_info["link"] = link
+
+            # f.e. 2020-01-13T19:09:30.000+0000
+            pubdate = datetime.strptime(
+                element["publicationDate"], "%Y-%m-%dT%H:%M:%S.000%z"
+            )
+            self._act_info["pubDate"] = pubdate
+
             self._next_url_info()
 
 
