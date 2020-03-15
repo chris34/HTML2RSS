@@ -2,10 +2,10 @@
 
 from copy import deepcopy
 from datetime import datetime
-import locale
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 from urllib.parse import urljoin
-from os import path
 import json
 
 from html.parser import HTMLParser
