@@ -163,12 +163,15 @@ class SoundcloudParser(GenericParser):
         if tag == "time" and self._collect_pubdate:
             self._collect_pubdate = False
 
-            # TODO: datetime.strptime doesnt support %z in python 2.x
-            # see http://bugs.python.org/issue6641
-            # → trace +0000
-            self._act_info["pubDate"] = datetime.strptime(
-                self._pubdate_string[:-6], "%Y/%m/%d  %H:%M:%S"
-            )
+            try:
+                self._act_info["pubDate"] = datetime.fromisoformat(
+                    # strip last Z
+                    self._pubdate_string[:-1]
+                )
+            except ValueError as e:
+                self._act_info["pubDate"] = datetime.strptime(
+                    self._pubdate_string, "%Y/%m/%d  %H:%M:%S%z"
+                )
 
 
 class TwitterParser(GenericParser):
