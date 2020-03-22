@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from operator import attrgetter
 
-## RSS-reference → http://www.w3schools.com/rss/rss_reference.asp
+# RSS-reference → http://www.w3schools.com/rss/rss_reference.asp
 
 
 class AtomFeed:
