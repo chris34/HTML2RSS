@@ -49,7 +49,7 @@ class GenericParser(HTMLParser):
     def _parse_URLs(self):
         try:
             self.feed(self._download_page())
-        except urllib.error.HTTPError as error:
+        except (urllib.error.HTTPError, urllib.error.URLError) as error:
             print(error, "on", self._url)
 
     def _next_url_info(self):
