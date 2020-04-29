@@ -7,6 +7,8 @@ import urllib.error
 import urllib.parse
 from urllib.parse import urljoin
 import json
+import re
+
 
 from html.parser import HTMLParser
 
@@ -70,6 +72,27 @@ class GenericParser(HTMLParser):
 
     def handle_endtag(self, tag):
         pass
+
+
+class DescriptionParser:
+    """
+    Downloads url, all content of <main> can be retrieved with `getData`.
+    Helps to get a description of an feed entry.
+    """
+
+    def __init__(self, url):
+        self.page = GenericParser(url)._download_page()
+
+        re_flags = re.DOTALL | re.IGNORECASE
+
+        matches = re.search(r"<main>.+</main>", self.page, re_flags)
+        self.page = matches.group(0)
+
+        # Try to remove some scripts. Not secure at all.
+        self.page = re.sub(r"<script.*?</script>", "", self.page, flags=re_flags)
+
+    def getData(self):
+        return self.page
 
 
 class SoundcloudDescriptionParser(GenericParser):
@@ -280,6 +303,10 @@ class SzParser(GenericParser):
         self.__found_entry = False
 
         self._parse_URLs()
+
+        for elem in self._list_url_info:
+            parser = DescriptionParser(elem["link"])
+            elem["description"] = parser.getData()
 
     def __str__(self):
         return "SZ"
