@@ -199,6 +199,9 @@ class SoundcloudParser(GenericParser):
 
 class TwitterParser(GenericParser):
     def __init__(self, url):
+        # use legacy mobile version, as it does not require any JS
+        url = url.replace('twitter.com', 'mobile.twitter.com')
+
         super().__init__(url)
 
         self.__found_description = False
@@ -215,35 +218,23 @@ class TwitterParser(GenericParser):
         attrs = self._attrs_to_dict(attrs)
 
         # search username
-        if tag == "a" and "class" in attrs:
-            if "ProfileHeaderCard-nameLink" in attrs["class"]:
-                self.__found_twitter_username = True
+        if tag == "span" and "screen-name" in attrs.get("class", ""):
+            self.__found_twitter_username = True
 
-        # search link and pubDate
-        if tag == "a" and "title" in attrs and "href" in attrs and "class" in attrs:
-            if "tweet-timestamp" in attrs["class"]:
-                self._act_info["link"] = "https://twitter.com" + attrs["href"]
-
-                date_string = attrs["title"]
-
-                # example format: '2:07 PM - 3 Oct 2014'
-                self._act_info["pubDate"] = datetime.strptime(
-                    date_string, "%I:%M %p - %d %b %Y"
-                )
-
-                # create title after required data (username and pubDate)
-                # are collected
-                self._act_info["title"] = (
-                    "["
-                    + self.__twitter_username
-                    + "] Tweet "
-                    + self._act_info["pubDate"].isoformat(" ")
-                )
+        # search tweet link
+        if tag == "table" and "tweet" in attrs.get("class", ""):
+            self._act_info["link"] = "https://twitter.com" + attrs["href"]
+            self._act_info["pubDate"] = datetime.now()
+            self._act_info["title"] = (
+                "["
+                + self.__twitter_username
+                + "] Tweet "
+                + attrs["href"]
+            )
 
         # search beginning of description
-        if tag == "p" and "class" in attrs:
-            if "tweet-text" in attrs["class"]:
-                self.__found_description = True
+        if tag == "td" and "tweet-content" in attrs.get("class", ""):
+            self.__found_description = True
 
     def handle_data(self, data):
         if self.__found_twitter_username:
@@ -253,10 +244,10 @@ class TwitterParser(GenericParser):
             self._act_info["description"] += data
 
     def handle_endtag(self, tag):
-        if tag == "a" and self.__found_twitter_username:
+        if tag == "span" and self.__found_twitter_username:
             self.__found_twitter_username = False
 
-        if tag == "p" and self.__found_description:
+        if tag == "td" and self.__found_description:
             self.__found_description = False
             self.description_finished = True
             self._next_url_info()
