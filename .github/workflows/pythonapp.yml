@@ -3,7 +3,7 @@ name: Python application
 on:
     push:
     schedule:
-     - cron "0 10 * * MON"
+     - cron: "0 10 * * MON"
 
 jobs:
   build:
