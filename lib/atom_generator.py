@@ -2,7 +2,6 @@
 
 from email.utils import formatdate
 import time
-from datetime import datetime
 from operator import attrgetter
 
 # RSS-reference → http://www.w3schools.com/rss/rss_reference.asp
