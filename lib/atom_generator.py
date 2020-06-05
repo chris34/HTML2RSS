@@ -110,26 +110,3 @@ class AtomItem(AtomBaseItem):
             self.__get_pub_Date(),
             self.__get_source(),
         )
-
-
-if __name__ == "__main__":
-    feed = AtomFeed("Test", "http://example.org", "Just for test purposes")
-
-    for i in range(0, 2):
-        title = "Testarticle %s" % i
-        feed.addItem(
-            title,
-            "http://example.org/article",
-            "Article description should normally be here!",
-        )
-
-    for i in range(0, 2):
-        title = "Testarticle with source and pubDate %s" % i
-        feed.addItem(
-            title,
-            "http://example.org/article",
-            "Article description should normally be here!",
-            datetime.now(),
-            "http://example.org/list-articles",
-        )
-    print(feed.getFeed())
