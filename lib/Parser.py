@@ -45,14 +45,19 @@ class GenericParser(HTMLParser):
         request = urllib.request.Request(
             self._url, headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en"}
         )
-        response = urllib.request.urlopen(request).read()
-        return str(response, "utf-8")
-
-    def _parse_URLs(self):
         try:
-            self.feed(self._download_page())
+            response = urllib.request.urlopen(request).read()
         except (urllib.error.HTTPError, urllib.error.URLError) as error:
             print(error, "on", self._url)
+            return ""
+        else:
+            return str(response, "utf-8")
+
+    def _parse_URLs(self):
+        content = self._download_page()
+        if not content:
+            return
+        self.feed(content)
 
     def _next_url_info(self):
         self._list_url_info.append(deepcopy(self._act_info))
