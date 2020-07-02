@@ -205,7 +205,7 @@ class SoundcloudParser(GenericParser):
 class TwitterParser(GenericParser):
     def __init__(self, url):
         # use legacy mobile version, as it does not require any JS
-        url = url.replace('twitter.com', 'mobile.twitter.com')
+        url = url.replace("twitter.com", "mobile.twitter.com")
 
         super().__init__(url)
 
@@ -231,10 +231,7 @@ class TwitterParser(GenericParser):
             self._act_info["link"] = "https://twitter.com" + attrs["href"]
             self._act_info["pubDate"] = datetime.now()
             self._act_info["title"] = (
-                "["
-                + self.__twitter_username
-                + "] Tweet "
-                + attrs["href"]
+                "[" + self.__twitter_username + "] Tweet " + attrs["href"]
             )
 
         # search beginning of description
