@@ -339,7 +339,10 @@ class FunkParser(GenericParser):
         return "Funk"
 
     def handle_json(self):
-        python_struct = json.loads(self.json_response)
+        try:
+            python_struct = json.loads(self.json_response)
+        except json.decoder.JSONDecodeError as error:
+            print(error, "on", self._url)
 
         for element in python_struct["list"]:
             self._act_info["title"] = element["title"]
