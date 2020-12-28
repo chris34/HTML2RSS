@@ -48,14 +48,3 @@ class TestParser(unittest.TestCase):
                 self.assertIsNotNone(e["link"])
                 self.assertIsInstance(e["pubDate"], datetime)
                 self.assertNotEqual(e["description"], "")
-
-    def test_twitter(self):
-        elements = TwitterParser("https://twitter.com/twitter").getData()
-
-        self.assertGreater(len(elements), 0)
-        for e in elements:
-            with self.subTest(element=e):
-                self.assertNotEqual(e["title"], "")
-                self.assertIsNotNone(e["link"])
-                self.assertIsInstance(e["pubDate"], datetime)
-                self.assertNotEqual(e["description"], "")

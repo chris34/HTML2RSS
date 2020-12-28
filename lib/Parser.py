@@ -202,59 +202,6 @@ class SoundcloudParser(GenericParser):
                 )
 
 
-class TwitterParser(GenericParser):
-    def __init__(self, url):
-        # use legacy mobile version, as it does not require any JS
-        url = url.replace("twitter.com", "mobile.twitter.com")
-
-        super().__init__(url)
-
-        self.__found_description = False
-
-        self.__found_twitter_username = False
-        self.__twitter_username = ""
-
-        self._parse_URLs()
-
-    def __str__(self):
-        return "Twitter"
-
-    def handle_starttag(self, tag, attrs):
-        attrs = self._attrs_to_dict(attrs)
-
-        # search username
-        if tag == "span" and "screen-name" in attrs.get("class", ""):
-            self.__found_twitter_username = True
-
-        # search tweet link
-        if tag == "table" and "tweet" in attrs.get("class", ""):
-            self._act_info["link"] = "https://twitter.com" + attrs["href"]
-            self._act_info["pubDate"] = datetime.now()
-            self._act_info["title"] = (
-                "[" + self.__twitter_username + "] Tweet " + attrs["href"]
-            )
-
-        # search beginning of description
-        if tag == "td" and "tweet-content" in attrs.get("class", ""):
-            self.__found_description = True
-
-    def handle_data(self, data):
-        if self.__found_twitter_username:
-            self.__twitter_username += data
-
-        if self.__found_description:
-            self._act_info["description"] += data
-
-    def handle_endtag(self, tag):
-        if tag == "span" and self.__found_twitter_username:
-            self.__found_twitter_username = False
-
-        if tag == "td" and self.__found_description:
-            self.__found_description = False
-            self.description_finished = True
-            self._next_url_info()
-
-
 class IdParser(GenericParser):
     def __init__(self, url):
         super().__init__(url)
