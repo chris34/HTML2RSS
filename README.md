@@ -24,3 +24,9 @@ For further configuration – f.e. which sites should be parsed – see config/h
 
 # HTTP-Error-Handling
 If the download of a page fails with f.e. a 503 “Service Unavailable”, an error message with the pageurl and status-code will be directly printed to stdout. Additionally, the page will be skipped in this run.
+
+# Run tests
+
+To run the (basic) tests simply execute
+
+   python -m unittest
