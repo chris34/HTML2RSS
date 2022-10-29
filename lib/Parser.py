@@ -273,7 +273,7 @@ class SzParser(GenericParser):
 class FunkParser(GenericParser):
     def __init__(self, channel_id):
         self.channel_id = channel_id
-        url = f"https://www.funk.net/data/videos/byChannelAlias/{channel_id}?page=0&size=10"
+        url = f"https://www.funk.net/api/frontend/webapp/video-channels/{channel_id}/videos?page=0&size=10"
         super().__init__(url)
 
         self.json_response = self._download_page()
@@ -294,12 +294,13 @@ class FunkParser(GenericParser):
             self._act_info["description"] = element["shortDescription"]
 
             video_alias = element["alias"]
-            link = f"https://www.funk.net/channel/{self.channel_id}/{video_alias}"
+            channel_alias = element["channelAlias"]
+            link = f"https://www.funk.net/channel/{channel_alias}/{video_alias}"
             self._act_info["link"] = link
 
-            # f.e. 2020-01-13T19:09:30.000+0000
+            # f.e. '2022-10-20T18:00:00Z'
             pubdate = datetime.strptime(
-                element["publicationDate"], "%Y-%m-%dT%H:%M:%S.000%z"
+                element["publicationDate"], "%Y-%m-%dT%H:%M:%S%z"
             )
             self._act_info["pubDate"] = pubdate
 

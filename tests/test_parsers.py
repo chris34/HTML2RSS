@@ -6,7 +6,7 @@ from lib.Parser import *
 
 class TestParser(unittest.TestCase):
     def test_funk(self):
-        elements = FunkParser("walulis-daily-12068").getData()
+        elements = FunkParser("12068").getData()
 
         self.assertGreater(len(elements), 0)
         for e in elements:
