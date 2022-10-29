@@ -47,4 +47,4 @@ class TestParser(unittest.TestCase):
                 self.assertNotEqual(e["title"], "")
                 self.assertIsNotNone(e["link"])
                 self.assertIsInstance(e["pubDate"], datetime)
-                self.assertNotEqual(e["description"], "")
+                self.assertEqual(e["description"], "")
