@@ -241,6 +241,8 @@ class SzParser(GenericParser):
         super().__init__(url)
 
         self.__found_entry = False
+        self.__inside_style = False
+        self.__inside_heading = False
 
         self._parse_URLs()
 
@@ -254,13 +256,25 @@ class SzParser(GenericParser):
     def handle_starttag(self, tag, attrs):
         if tag == "a":
             attrs = self._attrs_to_dict(attrs)
-            if attrs.get("class") == "sz-teaser":
+            if "data-track-szde" in attrs:
+                json_value = json.loads(attrs.get("data-track-szde"))
+                if json_value["event"] != "teaser_clicked":
+                    return
+
                 self.__found_entry = True
                 self._act_info["link"] = attrs["href"]
-                self._act_info["pubDate"] = datetime.now()
+
+        if self.__found_entry and tag == "time":
+            attrs = self._attrs_to_dict(attrs)
+            self._act_info["pubDate"] = datetime.fromisoformat(attrs.get("datetime"))
+
+        if tag == "style":
+            self.__inside_style = True
+        if tag == "h3":
+            self.__inside_heading = True
 
     def handle_data(self, data):
-        if self.__found_entry:
+        if self.__found_entry and self.__inside_heading and not self.__inside_style:
             self._act_info["title"] += data
 
     def handle_endtag(self, tag):
@@ -268,6 +282,11 @@ class SzParser(GenericParser):
             self.__found_entry = False
             self._act_info["title"] = self.rm_whitespace(self._act_info["title"])
             self._next_url_info()
+
+        if tag == "style":
+            self.__inside_style = False
+        if tag == "h3":
+            self.__inside_heading = False
 
 
 class FunkParser(GenericParser):
