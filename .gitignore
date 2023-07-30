@@ -1,2 +1,3 @@
 *.py[cod]
 feeds/
+config/*.cfg
