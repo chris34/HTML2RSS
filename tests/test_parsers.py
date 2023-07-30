@@ -39,7 +39,7 @@ class TestParser(unittest.TestCase):
                 self.assertNotEqual(e["description"], "")
 
     def test_soundcloud(self):
-        elements = SoundcloudParser("https://soundcloud.com/soundcloud").getData()
+        elements = SoundcloudParser("https://soundcloud.com/anjunadeep").getData()
 
         self.assertGreater(len(elements), 0)
         for e in elements:
@@ -47,4 +47,4 @@ class TestParser(unittest.TestCase):
                 self.assertNotEqual(e["title"], "")
                 self.assertIsNotNone(e["link"])
                 self.assertIsInstance(e["pubDate"], datetime)
-                self.assertEqual(e["description"], "")
+                self.assertNotEqual(e["description"], "")
