@@ -21,6 +21,7 @@ class TestParser(unittest.TestCase):
 
         self.assertGreater(len(elements), 0)
         for e in elements:
+            #print(e["title"], e["pubDate"], "\n")
             with self.subTest(element=e):
                 self.assertNotEqual(e["title"], "")
                 self.assertIsNotNone(e["link"])
