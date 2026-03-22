@@ -91,6 +91,10 @@ class DescriptionParser:
         re_flags = re.DOTALL | re.IGNORECASE
 
         matches = re.search(r"<main>.+</main>", self.page, re_flags)
+        if matches is None:
+            self.page = 'no description found'
+            return
+
         self.page = matches.group(0)
 
         # Try to remove some scripts. Not secure at all.
