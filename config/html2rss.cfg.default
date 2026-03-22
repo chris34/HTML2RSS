@@ -44,9 +44,6 @@ feed-url=http://example.org
 
 ;parser=
 ;; Defines the parser used to collect information.
-;; At the moment only two are available:
-;; 1. soundcloud
-;; 2. twitter
 
 ;source-url=
 ;; URL to the page that will de downloaded, parsed and you will see
